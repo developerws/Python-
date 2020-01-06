@@ -9,6 +9,7 @@ from urllib.parse import quote
 
 from pyquery import PyQuery as pq
 import json
+import pymongo
 #chrome_options = Options()
 #chrome_options.add_argument('--headless')
 #chrome_options.add_argument('--disable-gpu')
@@ -17,7 +18,20 @@ browser = webdriver.Chrome()
 wait = WebDriverWait(browser, 10)
 
 keyword = 'iPad'
+
+Mongo_url = 'localhost'
+Mongo_db = 'test'
+Mongo_collection = 'iPad'
+client = pymongo.MongoClient(Mongo_url)
+db = client[Mongo_db]
 url = 'https://s.taobao.com/search?q=' + quote(keyword)
+def save_to_mongo(result):
+    try:
+        if db[Mongo_collection].insert(result):
+            print('存储成功！')
+    except Exception:
+        print('存储失败！')
+
 def login_cookies():
     browser.get('https://login.taobao.com/member/login.jhtml?redirectURL=http%3A%2F%2Fbuyertrade.taobao.com%2Ftrade%2Fitemlist%2Flist_bought_items.htm%3Fspm%3D875.7931836%252FB.a2226mz.4.66144265Vdg7d5%26t%3D20110530')
     input('请回车登录！')
@@ -74,9 +88,9 @@ def get_product():
             'shop': item.find('.shop').text(),
             'location': item.find('.location').text()
         }
-        print(product)
+        save_to_mongo(product)
 if __name__ == '__main__':
     login_cookies()
 
-    for index in range(1,100):
+    for index in range(1,5):
         index_page(index)
